@@ -1,79 +1,65 @@
 # OTP Manager CLI
 
-Simple Node.js CLI that generates and validates one-time passcodes (OTPs) with per-OTP expiration timers and a live countdown display.
-
----
+Simple Node.js CLI to generate and validate one-time passcodes (OTPs) with per-OTP expiry and a displayed time-left counter.
 
 ## Features
-- Generate unique 5-digit OTPs.
-- Validate/extend existing OTPs.
-- Per-OTP expiry (configurable duration).
-- Live countdown displayed in the terminal when an OTP is generated/validated.
-- Simple in-memory storage (Map) for active OTPs.
+- Generates unique 5-digit OTPs.
+- Validates an existing OTP and extends its expiry if re-used.
+- Per-OTP expiry duration (configurable at start).
+- Displays remaining time for an OTP when generated/validated or checked.
+- In-memory storage (Map) — restart clears OTPs.
 
 ## Requirements
-- macOS (commands shown for macOS).
-- Node.js 16+ (recommended) with ES module support.
+- Node.js 16.6+ (for `readline/promises` and ES module support)
+- macOS (commands shown; works on other OSes with Node installed)
+- No external npm packages required
+
+## Project files
+- `OTPManager.js` — OTPManager class (generate, validate, expiry tracking).
+- `main.js` — CLI: prompt for duration, commands, and displays timers.
+- `README.md` — this file.
 
 ## Setup
+1. Open terminal in project folder:
+   cd <path_to_folder_of_main.js_file>
 
-1. Open terminal in the project folder:
-   cd <path_to_folder_where_main.js_is_placed>
-
-2. Initialize package.json (if you don't have one) and set module type:
+2. Ensure package.json has ES module type:
    ```bash
    npm init -y
-   # ensure ES modules so `import` works
-   # edit package.json and add: "type": "module"
-   # or run:
-   node -e "let p=require('./package.json'); p.type='module'; require('fs').writeFileSync('package.json', JSON.stringify(p, null,2))"
+   node -e "let p=require('./package.json'); p.type='module'; require('fs').writeFileSync('package.json', JSON.stringify(p,null,2))"
    ```
 
-3. There are no external dependencies. (Uses built-in `readline/promises`.)
-
-## Files
-- OTPManager.js  
-  - OTPManager class with:
-    - generateRandomOTP(): random 5-digit number
-    - generateOrValidateOTP(duration, otp?): create new or extend existing OTP
-    - isValid(otp): check validity
-- main.js  
-  - CLI loop using readline/promises
-  - Prompts for default OTP duration (seconds)
-  - Commands:
-    - g : generate new OTP
-    - v : validate/submit existing OTP (extends timer if exists)
-    - c : check OTP validity and remaining time
-    - q : quit
-  - Starts a live countdown display for generated/validated OTPs
-
-## Usage
-
-Run the CLI:
+## Run
 ```bash
 node main.js
 ```
 
+On start you will be asked:
+Please enter OTP duration in seconds (default 300s = 5 minutes)
+
+Press Enter for default or type a number (e.g. `60` for 60 seconds).
+
+## Commands (interactive)
+- `g` — generate a new OTP (starts a countdown display).
+- `v` — enter an OTP to validate; if it exists its expiry is extended, otherwise it is created (and timer started).
+- `c` — check validity and remaining time for a specific OTP.
+- `q` — quit.
+
 Example session:
-- Start -> asked: "Please enter OTP duration in seconds (default 30):"  
-  (Press Enter for default 300s (5 minutes) or type e.g. `60` for 60 seconds)
-- Commands prompt appears:
-  - Type `g` → generates an OTP and shows a live countdown for that OTP.
-  - Type `v` → you will be asked to enter an OTP number. If it exists, its timer is extended; if not, it will be created.
-  - Type `c` → check whether an OTP is valid and how many seconds remain.
-  - Type `q` → quit.
+- Enter duration `60`
+- Type `g` → prints OTP and shows "Time remaining for OTP XXXXX: 60 seconds"
+- Type `c`, enter the OTP → prints remaining seconds
+- Type `v`, enter the OTP → extends expiry and prints new remaining time
 
-Notes about countdown display:
-- Countdown is printed to stdout and updates every second. Because the CLI also prompts, output can interleave with prompts. Press Enter if prompt appears mixed with countdown output to get a fresh prompt line.
-
-## Important notes
-- Storage is in-memory (Map). Restarting the process clears all OTPs.
-- OTP uniqueness is ensured at generation time (collision avoided by regenerating).
-- Expired OTPs are cleaned when generating/validating and when checking validity.
+## Notes & limitations
+- OTPs are stored only in memory; process restart clears them.
+- Countdown display prints to stdout and may interleave with prompts.
+- Expired OTPs are cleaned during generate/validate/check operations.
+- OTP uniqueness is ensured at generation time by checking the Map.
 
 ## Troubleshooting
-- If you get module import errors: ensure package.json contains `"type": "module"`.
-- If `readline/promises` is unavailable, upgrade Node to v16.6+.
+- If you see `Error: Cannot find module 'readline/promises'` — upgrade Node to v16.6+.
+- If `import` fails, ensure package.json contains `"type": "module"`.
 
 ## License
 MIT
